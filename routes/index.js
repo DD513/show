@@ -1,109 +1,99 @@
-let express = require('express');
-let router = express.Router();
+const express = require('express');
+const router = express.Router();
 
 /* GET home page. */
 router.get('/', (req, res, next) => {
 
-  //let {con} =req;
-  const db = req.con;
-  let data = "";
+  const { con } = req;
 
-  let {user} = req.query;
-  //let user = req.query.user;
-
+  const { user } = req.query;
   let filter;
   if (user) {
-      filter = 'WHERE userid = ?';
+    filter = 'WHERE userid = ?';
   }
 
-  db.query(`SELECT * FROM account ${filter}${user}` ,(err, rows)=> {
-      if (err) {
-          console.log(err);
-      }
-      let data = rows;
-
-      // use index.ejs
-      res.render('index', { title: 'Account Information', data, user});
+  con.query(`SELECT * FROM account ${filter}`, user, (err, data) => {
+    if (err) {
+      console.log(err);
+    }
+    // use index.ejs
+    res.render('index', { title: 'Account Information', data, user });
   });
 
 });
 
-router.get('/add', (req,res,next)=>{
-  res.render('userAdd', {title:'Add User'});
+//userAdd
+router.get('/add', (req, res, next) => {
+  res.render('userAdd', { title: 'Add User' });
 });
 
-router.post('/userAdd', (req, res, next)=> {
-
-  const db = req.con;
-  const userid = req.body.userid;
-  const password = req.body.password;
-  const email = req.body.email;
-
-  let sql = {
-      userid,
-      password,
-      email,
+router.post('/userAdd', (req, res, next) => {
+  const { con } = req;
+  const { userid, password, email } = req.body;
+  const sql = {
+    userid,
+    password,
+    email,
   };
 
   //console.log(sql);
-  let qur = db.query('INSERT INTO account SET ?', sql, (err, rows)=> {
-      if (err) {
-          console.log(err);
-      }
-      res.setHeader('Content-Type', 'application/json');
-      res.redirect('/');
-  });
-
-});
-
-
-router.get('/userEdit', (req,res,next)=>{
-  let {id} = req.query;
-  let db = req.con;
-  let data = "";
-
-  db.query('SELECT * FROM account WHERE id = ?',id,(err,rows)=>{
-    if (err){
+  con.query('INSERT INTO account SET ?', sql, err => {
+    if (err) {
       console.log(err);
     }
-    let data = rows;
-    res.render('userEdit', { title : 'Edit Account', data:data});
+    res.setHeader('Content-Type', 'application/json');
+    res.redirect('/');
   });
+
 });
 
-router.post('/userEdit', (req, res, next)=> {
+//userEdit
+router.get('/userEdit', (req, res, next) => {
+  const { id } = req.query;
+  const { con } = req;
 
-  let db = req.con;
-  let {id} = req.body;
+  con.query('SELECT * FROM account WHERE id = ?', id, (err, data) => {
+    if (err) {
+      console.log(err);
+    }
+    res.render('userEdit', { title: 'Edit Account', data });
 
-  const userid = req.body.userid;
-  const password = req.body.password;
-  const email = req.body.email;
+  });
 
-  let sql = {
-      userid,
-      password,
-      email,
+});
+
+router.post('/userEdit', (req, res, next) => {
+
+  const { con } = req;
+  let { id } = req.body;
+
+  const { userid, password, email } = req.body;
+  // let userid = req.body.userid;
+  // let password = req.body.password;
+  // let email = req.body.email;
+  const sql = {
+    userid,
+    password,
+    email,
   };
 
-  let qur = db.query(`UPDATE account SET ? WHERE id = ?`, [sql, id], (err, rows)=> {
-      if (err) {
-          console.log(err);
-      }
-
-      res.setHeader('Content-Type', 'application/json');
-      res.redirect('/');
+  con.query(`UPDATE account SET ? WHERE id = ?`, [sql, id], err => {
+    if (err) {
+      console.log(err);
+    }
+    res.setHeader('Content-Type', 'application/json');
+    res.redirect('/');
   });
 
 });
 
-router.get('/userDelete', (req,res,next)=>{
-  let {id} = req.query;
+router.get('/userDelete', (req, res, next) => {
+  let { id } = req.query;
   //let id = req.query.id;
-  let db = req.con;
+  const { con } = req;
 
-  let qur = db.query('DELETE FROM account WHERE id = ?', id,(err,rwos)=>{
-    if(err){
+  con.query('DELETE FROM account WHERE id = ?', id, (err) => {
+    if (err) {
       console.log(err);
     }
     res.redirect('/');
